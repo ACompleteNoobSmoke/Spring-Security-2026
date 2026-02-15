@@ -26,7 +26,7 @@ public class AuthenticationService {
     private final EmailService emailService;
 
     public User signUp(RegisterUserDTO registerUserDTO) {
-       User newUser = new User(registerUserDTO.getUserName(), registerUserDTO.getPassword(), registerUserDTO.getPassword());
+       User newUser = new User(registerUserDTO.getUsername(), registerUserDTO.getPassword(), registerUserDTO.getEmail());
        newUser.setVerificationCode(generateVerificationCode());
        newUser.setVerificationExpirationAt(LocalDateTime.now().plusMinutes(15));
        newUser.setEnabled(true);
@@ -35,14 +35,14 @@ public class AuthenticationService {
     }
 
     public User loginAuthentication(LoginUserDTO loginUserDTO) {
-        User loggedInUser = userRepository.findByUsername(loginUserDTO.getUserName())
+        User loggedInUser = userRepository.findByUsername(loginUserDTO.getUsername())
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
 
         if (!loggedInUser.isEnabled()) throw new RuntimeException("Account Not Verified");
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginUserDTO.getUserName(),
+                        loginUserDTO.getUsername(),
                         loginUserDTO.getPassword()
                 )
         );
@@ -50,7 +50,7 @@ public class AuthenticationService {
     }
 
     public void verifyUser(VerifyUserDTO verifyUserDTO) {
-        User optionalUser = userRepository.findByUsername(verifyUserDTO.getUserName()).orElse(null);
+        User optionalUser = userRepository.findByUsername(verifyUserDTO.getUsername()).orElse(null);
         if (optionalUser == null) throw new RuntimeException("User Not Found");
         if (optionalUser.getVerificationExpirationAt().isBefore(LocalDateTime.now()))
             throw new RuntimeException("Verification code has expired");
@@ -102,6 +102,7 @@ public class AuthenticationService {
                         + "</table></td></tr></table>"
                         + "</body></html>";
         try {
+            System.out.println(user.getEmail());
             emailService.sendVerificationEmail(user.getEmail(), subject, htmlMessage);
         } catch (MessagingException e) {
             e.printStackTrace();
