@@ -8,4 +8,5 @@ import lombok.Setter;
 public class VerifyUserDTO {
     private String email;
     private String verificationCode;
+    private String userName;
 }
