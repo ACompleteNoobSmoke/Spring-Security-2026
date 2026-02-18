@@ -26,7 +26,7 @@ public class AuthenticationService {
     private final EmailService emailService;
 
     public User signUp(RegisterUserDTO registerUserDTO) {
-       User newUser = new User(registerUserDTO.getUsername(), registerUserDTO.getPassword(), registerUserDTO.getEmail());
+       User newUser = new User(registerUserDTO.getUsername(), passwordEncoder.encode(registerUserDTO.getPassword()), registerUserDTO.getEmail());
        newUser.setVerificationCode(generateVerificationCode());
        newUser.setVerificationExpirationAt(LocalDateTime.now().plusMinutes(15));
        newUser.setEnabled(true);
@@ -37,8 +37,12 @@ public class AuthenticationService {
     public User loginAuthentication(LoginUserDTO loginUserDTO) {
         User loggedInUser = userRepository.findByUsername(loginUserDTO.getUsername())
                 .orElseThrow(() -> new RuntimeException("User Not Found"));
+        System.out.println(loggedInUser.getUsername());
+        System.out.println(loggedInUser.getEmail());
 
         if (!loggedInUser.isEnabled()) throw new RuntimeException("Account Not Verified");
+
+        System.out.println("After");
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -46,6 +50,7 @@ public class AuthenticationService {
                         loginUserDTO.getPassword()
                 )
         );
+        System.out.println(loggedInUser);
         return loggedInUser;
     }
 
